@@ -1,0 +1,26 @@
+/* Páginas de texto do site (privacidade, apagar a conta): as cores da página inicial,
+   uma coluna só, leitura confortável no celular. */
+:root {
+  --fundo: #131219;
+  --linha: #332f43;
+  --texto: #f5f3fa;
+  --texto-2: #aca8bd;
+  --acento: #c4b5fd;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 680px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 30px; line-height: 1.2; margin: 8px 0 4px; }
+h2 { font-size: 20px; margin: 32px 0 8px; padding-top: 16px; border-top: 1px solid var(--linha); }
+p, li { color: var(--texto-2); }
+strong, em { color: var(--texto); }
+li { margin: 6px 0; }
+a { color: var(--acento); }
+.volta { margin: 0; font-size: 15px; }
+.volta a { text-decoration: none; }
+.data { margin-top: 0; font-size: 15px; }

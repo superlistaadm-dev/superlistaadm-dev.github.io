@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Super Lista</title>
+<meta name="description" content="A lista do mercado que aprende o preço com a sua nota fiscal e mostra quanto a sua lista sai em cada mercado perto de casa. Grátis, para Android, no Rio de Janeiro.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@500;600;700;800&display=swap">
+<style>
+/* Faixas de largura total com o conteúdo numa coluna de 1120px; o começo em duas colunas
+   (texto | celular e cupom), que empilham no celular. Escuro de propósito, como o app:
+   o único papel claro da página é o cupom fiscal.
+   Animações: o estado sem animação de cada cena é o quadro FINAL, então quem pede
+   menos movimento vê tudo pronto. O nome "Super Lista" é provisório. */
+:root {
+  --fundo: #131219;
+  --fundo-2: #1b1924;
+  --fundo-3: #24212f;
+  --linha: #332f43;
+  --texto: #f5f3fa;
+  --texto-2: #aca8bd;
+  --texto-3: #807b94;
+  --acento: #c4b5fd;
+  --marca-1: #3c28fc;
+  --marca-2: #6b49fc;
+  --marca-3: #ea55f2;
+  --verde: #86efac;
+  --verde-forte: #22c55e;
+  --verde-fundo: #14301f;
+  --verde-borda: #2f6b45;
+  --amarelo: #fcd34d;
+  --papel: #f6f3ea;
+  --tinta: #26231e;
+  --tinta-2: #6f685c;
+  /* as cores do próprio app, só dentro dos desenhos de tela */
+  --app-fundo: #18181b;
+  --app-cartao: #27272a;
+  --app-borda: #3f3f46;
+  --app-texto-2: #a1a1aa;
+  --app-roxo: #4b31c9;
+  --app-roxo-2: #2b2155;
+  --app-rua: #2a2833;
+  --f-titulo: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
+  --f-texto: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-cupom: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
+  --f-app: Inter, system-ui, sans-serif;
+  --ciclo: 6s;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--fundo); color: var(--texto); font-family: var(--f-texto); font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: clip; }
+a { color: var(--acento); }
+a:focus-visible, summary:focus-visible, button:focus-visible { outline: 2px solid var(--acento); outline-offset: 3px; border-radius: 6px; }
+h1, h2, h3 { font-family: var(--f-titulo); text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(30px, 4.2vw, 46px); line-height: 1.06; letter-spacing: -0.02em; font-weight: 800; }
+h3 { font-size: 20px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; }
+p { margin: 0; }
+.ic { width: 1em; height: 1em; fill: currentColor; flex-shrink: 0; }
+
+.faixa { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.miolo { max-width: 1120px; margin-inline: auto; }
+.olho { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--acento); }
+
+/* topo */
+.topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 20px; }
+.marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--texto); font-family: var(--f-titulo); font-weight: 800; font-size: 20px; letter-spacing: -0.01em; }
+.marca img { width: 36px; height: 36px; border-radius: 10px; }
+.topo nav { display: flex; gap: 22px; font-size: 15px; font-weight: 600; }
+.topo nav a { color: var(--texto-2); text-decoration: none; }
+.topo nav a:hover { color: var(--texto); }
+@media (max-width: 560px) { .topo nav { display: none; } }
+
+/* começo */
+.heroi { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 40px; align-items: center; padding-block: 32px 72px; }
+.heroi-texto { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+h1 { font-size: clamp(40px, 6.2vw, 72px); line-height: 1; letter-spacing: -0.03em; font-weight: 800; }
+h1 em { font-style: normal; background: linear-gradient(95deg, var(--marca-2), var(--marca-3), var(--marca-2)); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: brilho-texto 6s ease-in-out infinite; }
+@keyframes brilho-texto { 50% { background-position: 100% 0; } }
+.chamada { font-size: 19px; color: var(--texto-2); max-width: 34em; }
+.acoes { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.loja { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 12px; height: 56px; padding: 0 22px; border-radius: 16px; background: var(--texto); color: var(--fundo); font-weight: 700; font-size: 16px; }
+.loja::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(107, 73, 252, 0.28) 50%, transparent 70%); transform: translateX(-100%); animation: varrer-botao 4.5s ease-in-out 1.5s infinite; }
+@keyframes varrer-botao { 0%, 60% { transform: translateX(-100%); } 85%, 100% { transform: translateX(100%); } }
+.loja .ic { width: 22px; height: 22px; }
+.loja small { display: block; font-size: 12px; font-weight: 600; color: #5d586c; line-height: 1.1; }
+.loja span { text-align: left; line-height: 1.2; }
+.aviso-rj { font-size: 14px; color: var(--texto-3); }
+@media (max-width: 860px) { .heroi { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 16px 56px; } }
+
+/* o celular e o cupom */
+.cena { position: relative; height: 640px; --voo: 210px; }
+.cena::before { content: ""; position: absolute; inset: 6% -4% 8% 14%; background: radial-gradient(closest-side, rgba(107, 73, 252, 0.5), transparent), radial-gradient(closest-side at 72% 28%, rgba(234, 85, 242, 0.32), transparent 70%); filter: blur(40px); animation: aurora 14s ease-in-out infinite alternate; }
+@keyframes aurora { to { transform: translate(-7%, 5%) scale(1.12) rotate(10deg); } }
+.celular { position: absolute; right: 2%; top: 0; width: 300px; padding: 9px; border-radius: 46px; background: #0a090e; box-shadow: 0 0 0 1px #3a3548, 0 50px 90px -30px rgba(107, 73, 252, 0.55); z-index: 2; animation: flutuar 7s ease-in-out infinite; }
+@keyframes flutuar { 50% { transform: translateY(-8px); } }
+.tela { position: relative; height: 610px; border-radius: 37px; overflow: hidden; background: var(--app-fundo); font-family: var(--f-app); color: #fafafa; font-size: 12px; display: flex; flex-direction: column; }
+.cupom { position: absolute; left: 0; top: 70px; width: 268px; z-index: 1; transform: rotate(-5deg); transform-origin: top center; animation: imprimir 1.1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes imprimir { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@media (max-width: 860px) { .cena { height: 600px; max-width: 520px; width: 100%; margin-inline: auto; } }
+@media (max-width: 480px) {
+  .cena { height: 540px; --voo: 120px; }
+  .celular { width: 252px; right: 0; border-radius: 40px; }
+  .tela { height: 520px; border-radius: 32px; }
+  .cupom { width: 228px; top: 58px; left: -4px; }
+}
+
+/* a etiqueta que sai de uma linha do cupom e marca o mesmo item no celular (movida pelo script) */
+.voa { position: absolute; z-index: 3; left: 0; top: 0; display: flex; align-items: center; gap: 6px; padding: 6px 11px 6px 8px; border-radius: 999px; background: var(--papel); color: var(--tinta); font: 600 11px/1 var(--f-cupom); box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.7), 0 0 0 1.5px var(--marca-2); opacity: 0; white-space: nowrap; pointer-events: none; }
+.voa .ic { width: 14px; height: 14px; color: var(--marca-2); }
+.papel .lin { transition: background-color 0.25s ease, box-shadow 0.25s ease; border-radius: 2px; }
+.papel .lin.saindo { background: rgba(107, 73, 252, 0.2); box-shadow: 0 0 0 3px rgba(107, 73, 252, 0.2); }
+
+/* dentro do celular: a lista, como está no app */
+.app-topo { padding: 40px 16px 12px; background: linear-gradient(180deg, var(--app-roxo) 0%, var(--app-roxo-2) 72%, var(--app-fundo) 100%); }
+.app-titulo { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+.app-quem { margin-top: 4px; display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: #ddd6fe; }
+.ao-vivo { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; color: var(--verde); font-weight: 700; }
+.ao-vivo::before { content: ""; width: 6px; height: 6px; border-radius: 3px; background: var(--verde-forte); animation: pulso 1.6s ease-out infinite; }
+@keyframes pulso { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 100% { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); } }
+.bolinhas { display: flex; }
+.bolinha { width: 16px; height: 16px; border-radius: 8px; border: 2px solid #3a2d7a; display: grid; place-items: center; font-size: 8px; font-weight: 800; color: #1c1917; }
+.bolinha + .bolinha { margin-left: -5px; }
+.app-abas { margin-top: 12px; display: flex; background: rgba(17, 17, 20, 0.5); border-radius: 10px; padding: 3px; }
+.app-aba { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 4px; border-radius: 8px; font-size: 12px; font-weight: 700; color: #ece6f5; }
+.app-aba.on { background: rgba(255, 255, 255, 0.92); color: #27272a; }
+.app-aba .ic { width: 14px; height: 14px; }
+.app-conta { margin-top: 10px; display: flex; align-items: baseline; justify-content: space-between; font-size: 11px; color: #e4e4e7; }
+.app-conta b { font-size: 17px; font-weight: 800; color: #fafafa; }
+.app-conta span:last-child { color: #ddd6fe; font-size: 10.5px; }
+.app-barra { margin-top: 5px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.15); }
+.app-barra i { display: block; height: 100%; width: 37.5%; border-radius: 2px; background: var(--acento); transition: width 0.4s ease; }
+.app-corpo { flex: 1; min-height: 0; overflow: hidden; padding: 2px 12px 0; display: flex; flex-direction: column; gap: 5px; }
+.app-setor { display: flex; justify-content: space-between; padding: 7px 3px 1px; font-size: 10px; font-weight: 700; color: var(--app-texto-2); letter-spacing: 0.4px; text-transform: uppercase; }
+.app-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 12px; background: var(--app-cartao); border: 1px solid var(--app-borda); transition: opacity 0.35s ease, background-color 0.35s ease; }
+.app-item .ic { width: 20px; height: 20px; color: var(--app-texto-2); transition: color 0.3s ease; }
+.app-item div { flex: 1; min-width: 0; }
+.app-item b { display: block; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-item small { display: block; font-size: 10px; color: var(--app-texto-2); }
+.app-item.pego { opacity: 0.55; }
+.app-item.pego b { text-decoration: line-through; }
+.app-item.pego .ic, .app-item.pego small { color: var(--verde); }
+.app-item.agora { background: #2f2a45; opacity: 1; }
+.app-item.agora .ic { animation: estalo 0.4s ease; }
+@keyframes estalo { 50% { transform: scale(1.35); } }
+.app-aviso { position: absolute; left: 12px; right: 12px; bottom: 14px; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: #3f3f46; font-size: 11px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); transform: translateY(160%); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.app-aviso.on { transform: translateY(0); }
+.app-aviso .bolinha { border-color: #3f3f46; width: 20px; height: 20px; border-radius: 10px; font-size: 9px; }
+
+/* o cupom fiscal */
+.papel { background: var(--papel); color: var(--tinta); font-family: var(--f-cupom); font-size: 10px; line-height: 1.5; padding: 18px 15px 26px; box-shadow: 0 30px 60px -25px rgba(0, 0, 0, 0.8);
+  --dente: 10px;
+  -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--dente) 100%;
+  mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--dente) 100%; }
+.papel .c { text-align: center; }
+.papel .forte { font-weight: 600; }
+.papel hr { border: 0; border-top: 1px dashed var(--tinta-2); margin: 7px 0; }
+.papel .lin { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; }
+.papel .lin span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.papel .det { grid-column: 1 / -1; color: var(--tinta-2); padding-left: 8px; }
+.papel .itens { display: flex; flex-direction: column; gap: 3px; }
+.papel .total { font-size: 12px; }
+.papel .chave { color: var(--tinta-2); text-align: center; word-spacing: 2px; font-size: 9px; }
+.qr-caixa { position: relative; width: 92px; margin: 8px auto 0; }
+.qr-caixa svg { display: block; width: 100%; height: auto; }
+.qr-caixa::after { content: ""; position: absolute; left: -8px; right: -8px; top: 0; height: 2px; background: var(--verde-forte); box-shadow: 0 0 10px 2px rgba(34, 197, 94, 0.7); opacity: 0; animation: ler-qr 2.8s ease-in-out 1.3s infinite; }
+@keyframes ler-qr { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 50% { top: 100%; opacity: 1; } 60%, 100% { top: 100%; opacity: 0; } }
+@media (max-width: 480px) { .papel { font-size: 9px; padding: 14px 12px 22px; } .qr-caixa { width: 76px; } }
+
+/* seções */
+.secao { padding-block: 88px; border-top: 1px solid var(--linha); }
+.secao-cab { display: flex; flex-direction: column; gap: 14px; max-width: 40em; margin-bottom: 48px; }
+.secao-cab p { color: var(--texto-2); font-size: 18px; }
+@media (max-width: 560px) { .secao { padding-block: 64px; } .secao-cab { margin-bottom: 36px; } }
+
+/* como funciona: a ordem é a da compra, e cada passo tem a sua cena */
+.passos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px 24px; counter-reset: passo; }
+.passos li { display: flex; flex-direction: column; gap: 12px; counter-increment: passo; min-width: 0; }
+.passos h3 { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.passos h3::before { content: counter(passo); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 15px; border: 1.5px solid var(--marca-2); color: var(--acento); font: 800 14px/1 var(--f-titulo); flex-shrink: 0; }
+.passos p { color: var(--texto-2); font-size: 16px; }
+@media (max-width: 960px) { .passos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .passos { grid-template-columns: minmax(0, 1fr); } }
+
+.mini { position: relative; height: 212px; border-radius: 20px; background: var(--app-fundo); border: 1px solid var(--app-borda); overflow: hidden; font-family: var(--f-app); color: #fafafa; padding: 16px; display: flex; flex-direction: column; justify-content: center; gap: 7px; }
+.m-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--app-cartao); border: 1px solid var(--app-borda); font-size: 12px; font-weight: 600; }
+.m-item .ic { width: 17px; height: 17px; color: var(--app-texto-2); }
+.m-item div { flex: 1; min-width: 0; }
+.m-item small { display: block; font-size: 10px; font-weight: 500; color: var(--app-texto-2); }
+.m-item.pego { opacity: 0.55; }
+.m-item.pego .ic, .m-item.pego small { color: var(--verde); }
+.m-item.pego b { text-decoration: line-through; }
+
+/* passo 1: digitar e o item entrar na lista */
+.mini-lista { justify-content: flex-end; }
+.mini-lista .novo { animation: entra-item var(--ciclo) ease infinite; }
+@keyframes entra-item { 0%, 50% { opacity: 0; transform: translateY(10px) scale(0.96); } 58%, 90% { opacity: 1; transform: none; } 98%, 100% { opacity: 0; transform: none; } }
+.m-campo { position: relative; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border-radius: 10px; border: 2px solid #e4e4e7; font-size: 12px; font-weight: 500; margin-top: 4px; }
+.m-campo .ic { width: 16px; height: 16px; color: var(--app-texto-2); }
+.m-campo .ph { color: #71717a; animation: some-ph var(--ciclo) steps(1) infinite; }
+@keyframes some-ph { 0% { opacity: 1; } 10% { opacity: 0; } 50% { opacity: 1; } }
+.m-campo .dig { position: absolute; left: 36px; color: #fafafa; clip-path: inset(0 100% 0 0); animation: digitar var(--ciclo) infinite; }
+.m-campo .dig::after { content: ""; display: inline-block; width: 1.5px; height: 13px; margin-left: 1px; vertical-align: -2px; background: var(--acento); }
+@keyframes digitar { 0%, 10% { clip-path: inset(0 100% 0 0); animation-timing-function: steps(10); } 42%, 49% { clip-path: inset(0 0 0 0); opacity: 1; } 50%, 100% { clip-path: inset(0 0 0 0); opacity: 0; } }
+
+/* passo 2: tocar e o item ficar pego */
+.mini-pega .alvo { animation: fica-pego var(--ciclo) ease infinite; }
+@keyframes fica-pego { 0%, 38% { opacity: 1; background-color: #2f2a45; } 50%, 92% { opacity: 0.55; background-color: var(--app-cartao); } 100% { opacity: 1; background-color: var(--app-cartao); } }
+.troca-ic { position: relative; width: 17px; height: 17px; flex-shrink: 0; }
+.troca-ic .ic { position: absolute; inset: 0; }
+.troca-ic::before { content: ""; position: absolute; inset: -4px; border-radius: 50%; background: var(--acento); opacity: 0; animation: toque var(--ciclo) ease-out infinite; }
+@keyframes toque { 0%, 28% { opacity: 0; transform: scale(0.4); } 30% { opacity: 0.5; transform: scale(0.6); } 42%, 100% { opacity: 0; transform: scale(2.4); } }
+.mini-pega .vazio { color: var(--app-texto-2); opacity: 0; animation: some-vazio var(--ciclo) steps(1) infinite; }
+@keyframes some-vazio { 0% { opacity: 1; } 33% { opacity: 0; } }
+.mini-pega .cheio { color: var(--verde); animation: aparece-cheio var(--ciclo) ease infinite; }
+@keyframes aparece-cheio { 0%, 32% { opacity: 0; transform: scale(0.3); } 38% { opacity: 1; transform: scale(1.3); } 44%, 100% { opacity: 1; transform: scale(1); } }
+.riscar { position: relative; display: inline-block; }
+.mini-pega .alvo b { text-decoration: none; }
+.riscar::after { content: ""; position: absolute; left: 0; right: 0; top: 54%; height: 1.5px; background: currentColor; transform-origin: left; animation: risca var(--ciclo) ease infinite; }
+@keyframes risca { 0%, 36% { transform: scaleX(0); } 46%, 92% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
+.mini-pega .alvo small { animation: aparece-quem var(--ciclo) ease infinite; }
+@keyframes aparece-quem { 0%, 40% { opacity: 0; transform: translateY(3px); } 48%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+
+/* passo 3: o quadro verde acha o código e gira até casar com ele, destaca, a câmera fecha
+   e a nota aparece. Sem animação, fica a nota já lida. */
+.mini-nota { padding: 0; --ciclo-nota: 8s; }
+.cam { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: radial-gradient(circle at 50% 45%, #2e2b38, #121116 75%); clip-path: circle(0% at 50% 45%); animation: camera var(--ciclo-nota) ease-in-out infinite; }
+@keyframes camera { 0%, 58% { clip-path: circle(80% at 50% 45%); } 66%, 95% { clip-path: circle(0% at 50% 45%); } 100% { clip-path: circle(80% at 50% 45%); } }
+.mira { position: relative; width: 116px; height: 116px; display: grid; place-items: center;
+  --c: #e4e4e7;
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 20px 2.5px no-repeat, linear-gradient(var(--c), var(--c)) top left / 2.5px 20px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 20px 2.5px no-repeat, linear-gradient(var(--c), var(--c)) top right / 2.5px 20px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 20px 2.5px no-repeat, linear-gradient(var(--c), var(--c)) bottom left / 2.5px 20px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 20px 2.5px no-repeat, linear-gradient(var(--c), var(--c)) bottom right / 2.5px 20px no-repeat; }
+.mira .qr-papel { position: relative; width: 74px; height: 74px; padding: 6px; background: var(--papel); border-radius: 4px; transform: perspective(380px) rotateX(16deg) rotate(-11deg); }
+.mira .qr-papel svg { display: block; width: 100%; height: 100%; }
+.mira .varre { position: absolute; left: 6px; right: 6px; top: 12%; height: 2px; background: var(--verde-forte); box-shadow: 0 0 10px 2px rgba(34, 197, 94, 0.7); opacity: 0; animation: varre var(--ciclo-nota) ease-in-out infinite; }
+@keyframes varre { 0% { top: 12%; opacity: 0; } 3% { opacity: 1; } 13% { top: 86%; } 23% { top: 12%; opacity: 1; } 26%, 100% { top: 12%; opacity: 0; } }
+/* o quadro mora dentro do papel: herda a mesma inclinação do código e casa certinho com ele */
+.qr-papel .lido { position: absolute; inset: -5px; border: 2.5px solid var(--verde-forte); border-radius: 6px; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); animation: enquadra var(--ciclo-nota) cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
+@keyframes enquadra {
+  0%, 20% { opacity: 0; transform: rotate(11deg) scale(1.6); }
+  25% { opacity: 1; transform: rotate(11deg) scale(1.45); }
+  36% { transform: rotate(0) scale(1); box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); }
+  42% { transform: scale(1.08); box-shadow: 0 0 0 9px rgba(34, 197, 94, 0.32); }
+  48%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); }
+}
+.rot-lido { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: var(--verde-fundo); color: var(--verde); font-size: 11px; font-weight: 700; animation: mostra-rotulo var(--ciclo-nota) ease infinite; }
+.rot-lido .ic { width: 13px; height: 13px; }
+@keyframes mostra-rotulo { 0%, 38% { opacity: 0; transform: translateY(6px); } 44%, 100% { opacity: 1; transform: none; } }
+.dados { position: absolute; inset: 0; padding: 16px; display: flex; flex-direction: column; justify-content: center; gap: 7px; animation: dados var(--ciclo-nota) ease infinite; }
+@keyframes dados { 0%, 62% { opacity: 0; transform: translateY(10px); } 70%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+.d-cab { display: flex; align-items: center; gap: 10px; padding-bottom: 9px; margin-bottom: 2px; border-bottom: 1px solid var(--app-borda); }
+.d-cab i { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: var(--verde-fundo); color: var(--verde); flex-shrink: 0; }
+.d-cab i .ic { width: 17px; height: 17px; }
+.d-cab div { flex: 1; min-width: 0; }
+.d-cab b { display: block; font-size: 13px; font-weight: 700; }
+.d-cab small { display: block; font-size: 10.5px; color: var(--app-texto-2); }
+.d-cab .tot { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.d-lin { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: #e4e4e7; font-variant-numeric: tabular-nums; animation: d-lin var(--ciclo-nota) ease infinite; }
+.d-lin.resto { color: var(--app-texto-2); }
+@keyframes d-lin { 0%, 66% { opacity: 0; transform: translateX(-8px); } 72%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+.d-lin:nth-of-type(3) { animation-name: d-lin-2; }
+.d-lin:nth-of-type(4) { animation-name: d-lin-3; }
+.d-lin:nth-of-type(5) { animation-name: d-lin-4; }
+@keyframes d-lin-2 { 0%, 68% { opacity: 0; transform: translateX(-8px); } 74%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+@keyframes d-lin-3 { 0%, 70% { opacity: 0; transform: translateX(-8px); } 76%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+@keyframes d-lin-4 { 0%, 72% { opacity: 0; transform: translateX(-8px); } 78%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+
+/* passo 4: os preços aparecendo no mapa */
+.mini-mapa { padding: 0; background-color: #1d1c23;
+  background-image:
+    linear-gradient(28deg, transparent 47%, #353241 47% 52%, transparent 52%),
+    repeating-linear-gradient(0deg, transparent 0 36px, var(--app-rua) 36px 42px),
+    repeating-linear-gradient(90deg, transparent 0 50px, var(--app-rua) 50px 56px); }
+.casa { position: absolute; left: 46%; top: 56%; width: 12px; height: 12px; border-radius: 6px; background: var(--acento); box-shadow: 0 0 0 3px rgba(196, 181, 253, 0.3); }
+.casa::before { content: ""; position: absolute; inset: -40px; border-radius: 50%; border: 1px dashed rgba(196, 181, 253, 0.45); animation: raio 3s ease-out infinite; }
+@keyframes raio { from { transform: scale(0.3); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
+.pino { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.pino i { width: 26px; height: 26px; border-radius: 13px; display: grid; place-items: center; background: var(--app-cartao); border: 1.5px solid var(--app-borda); }
+.pino i .ic { width: 14px; height: 14px; color: #e4e4e7; }
+.balao { padding: 4px 8px; border-radius: 8px; background: var(--app-cartao); border: 1px solid var(--app-borda); font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; transform-origin: bottom center; animation: estoura var(--ciclo) cubic-bezier(0.3, 1.5, 0.5, 1) infinite; }
+.pino:nth-of-type(2) .balao { animation-delay: 0.35s; }
+.pino:nth-of-type(3) .balao { animation-delay: 0.7s; }
+@keyframes estoura { 0%, 12% { opacity: 0; transform: scale(0.2); } 22%, 92% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.9); } }
+.pino.melhor .balao { background: var(--verde-fundo); border-color: var(--verde-borda); color: var(--verde); animation-name: estoura, vira-melhor; animation-duration: var(--ciclo), var(--ciclo); animation-delay: 0s, 0s; animation-iteration-count: infinite, infinite; }
+.pino.melhor i { border-color: var(--verde-borda); animation: vira-melhor-pino var(--ciclo) ease infinite; }
+@keyframes vira-melhor { 0%, 50% { background-color: var(--app-cartao); border-color: var(--app-borda); color: #fafafa; } 58%, 100% { background-color: var(--verde-fundo); border-color: var(--verde-borda); color: var(--verde); } }
+@keyframes vira-melhor-pino { 0%, 50% { border-color: var(--app-borda); transform: none; } 56% { transform: scale(1.2); } 62%, 100% { border-color: var(--verde-borda); transform: none; } }
+
+/* quanto custa em cada mercado */
+.precos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+.precos .secao-cab { margin-bottom: 0; }
+.troca { margin-top: 8px; padding: 18px 20px; border-radius: 16px; background: var(--fundo-2); border: 1px solid var(--linha); font-size: 16px; color: var(--texto-2); }
+.troca b { color: var(--texto); }
+@media (max-width: 860px) { .precos { grid-template-columns: minmax(0, 1fr); gap: 36px; } }
+
+.folha { position: relative; font-family: var(--f-app); background: var(--app-fundo); border: 1px solid var(--app-borda); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 40px 80px -40px rgba(60, 40, 252, 0.6); min-width: 0; }
+.folha-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.folha-cab b { font-size: 16px; font-weight: 800; }
+.exemplo { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--app-texto-2); border: 1px solid var(--app-borda); border-radius: 999px; padding: 3px 9px; }
+.folha-sub { font-size: 12.5px; color: var(--app-texto-2); margin-top: -4px; }
+.mercado { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 12px 14px; border-radius: 14px; background: var(--app-cartao); border: 1px solid var(--app-borda); }
+.mercado > .ic { width: 22px; height: 22px; color: var(--app-texto-2); grid-row: span 2; }
+.mercado b { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mercado .valor { font-size: 16px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.mercado small { font-size: 11.5px; color: var(--app-texto-2); }
+.mercado .dif { font-size: 11.5px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; color: var(--app-texto-2); white-space: nowrap; }
+.mercado.melhor { border-color: var(--verde-borda); background: var(--verde-fundo); }
+.mercado.melhor > .ic, .mercado.melhor .dif { color: var(--verde); }
+.visto .mercado { animation: chega-linha 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.visto .mercado:nth-of-type(3) { animation-delay: 0.12s; }
+.visto .mercado:nth-of-type(4) { animation-delay: 0.24s; }
+@keyframes chega-linha { from { transform: translateX(18px); opacity: 0.25; } }
+.visto .mercado.melhor { animation: chega-linha 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards, brilha-melhor 1.4s ease 1.3s; }
+@keyframes brilha-melhor { 40% { box-shadow: 0 0 0 6px rgba(134, 239, 172, 0.18); } }
+.folha-pe { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--app-texto-2); }
+.folha-pe .ic { width: 14px; height: 14px; }
+
+/* No mercado e Depois da compra: duas cenas grandes por seção, em ciclo de 8 s.
+   Como nas outras cenas, o estado sem animação é o quadro final. */
+.dupla { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 44px 32px; }
+.bloco { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.bloco h3 { margin-top: 6px; }
+.bloco p { color: var(--texto-2); font-size: 16px; max-width: 34em; }
+.palco { position: relative; height: 320px; border-radius: 22px; background: var(--app-fundo); border: 1px solid var(--app-borda); overflow: hidden; font-family: var(--f-app); color: #fafafa; --ciclo-palco: 8s; }
+.palco .m-item { font-size: 13px; padding: 10px 12px; }
+@media (max-width: 760px) { .dupla { grid-template-columns: minmax(0, 1fr); } }
+
+/* a ficha do item subindo */
+.pf-lista { padding: 14px 14px 0; display: flex; flex-direction: column; gap: 6px; }
+.pf-lista .toque { animation: toque-item var(--ciclo-palco) ease infinite; }
+@keyframes toque-item { 0%, 5% { background-color: var(--app-cartao); } 9% { background-color: #3b3552; } 14%, 100% { background-color: var(--app-cartao); } }
+.pf-sombra { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.55); animation: pf-sombra var(--ciclo-palco) ease infinite; }
+@keyframes pf-sombra { 0%, 10% { opacity: 0; } 18%, 90% { opacity: 1; } 97%, 100% { opacity: 0; } }
+.pf-folha { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 16px 16px; background: #1f1f23; border-radius: 20px 20px 0 0; border-top: 1px solid var(--app-borda); display: flex; flex-direction: column; gap: 10px; animation: pf-folha var(--ciclo-palco) cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
+@keyframes pf-folha { 0%, 10% { transform: translateY(105%); } 20%, 90% { transform: none; } 98%, 100% { transform: translateY(105%); } }
+.alca { align-self: center; width: 36px; height: 4px; border-radius: 2px; background: var(--app-borda); }
+.pf-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.pf-cab b { display: block; font-size: 15px; font-weight: 800; }
+.pf-cab small { font-size: 11px; color: var(--app-texto-2); }
+.pf-cab .ic { width: 20px; height: 20px; color: var(--app-texto-2); }
+.pf-qtd { display: flex; align-items: center; gap: 14px; }
+.pf-qtd span { width: 30px; height: 30px; border-radius: 15px; background: var(--app-cartao); display: grid; place-items: center; color: #e4e4e7; font-weight: 700; font-size: 15px; }
+.pf-qtd b { font-size: 16px; min-width: 14px; text-align: center; }
+.pf-preco { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12.5px; color: var(--app-texto-2); }
+.pf-preco b { font-size: 16px; color: #fafafa; font-variant-numeric: tabular-nums; }
+.pf-perto { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--verde-fundo); border: 1px solid var(--verde-borda); animation: pf-perto var(--ciclo-palco) cubic-bezier(0.3, 1.5, 0.5, 1) infinite; }
+.pf-perto .ic { width: 20px; height: 20px; color: var(--verde); }
+.pf-perto b { display: block; font-size: 13px; color: var(--verde); }
+.pf-perto small { display: block; font-size: 11px; color: #bbf7d0; }
+@keyframes pf-perto { 0%, 30% { opacity: 0; transform: translateY(8px) scale(0.92); } 38%, 100% { opacity: 1; transform: none; } }
+
+/* o mapa das lojas e a ficha do mercado */
+.palco-mapa { background-color: #1d1c23;
+  background-image:
+    linear-gradient(28deg, transparent 47%, #353241 47% 51%, transparent 51%),
+    linear-gradient(-62deg, transparent 60%, #302d3a 60% 63%, transparent 63%),
+    repeating-linear-gradient(0deg, transparent 0 44px, var(--app-rua) 44px 50px),
+    repeating-linear-gradient(90deg, transparent 0 62px, var(--app-rua) 62px 68px); }
+.selo-lojas { position: absolute; top: 14px; left: 14px; z-index: 2; padding: 6px 11px; border-radius: 999px; background: rgba(24, 24, 27, 0.88); border: 1px solid var(--app-borda); font-size: 11.5px; font-weight: 700; }
+.pontos { position: absolute; inset: 0; }
+.pontos span { position: absolute; width: 9px; height: 9px; border-radius: 5px; background: #8b7cf6; box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.8); animation: pinga var(--ciclo-palco) ease infinite; animation-delay: var(--d); }
+@keyframes pinga { 0% { opacity: 0; transform: scale(0); } 6%, 92% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } }
+.pm-voce { position: absolute; left: 38%; top: 40%; width: 14px; height: 14px; border-radius: 7px; background: var(--acento); box-shadow: 0 0 0 3px rgba(196, 181, 253, 0.3); }
+.pm-voce::before { content: ""; position: absolute; inset: -30px; border-radius: 50%; border: 1px dashed rgba(196, 181, 253, 0.5); animation: raio 3s ease-out infinite; }
+.pm-pino { position: absolute; left: 62%; top: 24%; width: 36px; height: 36px; border-radius: 18px; display: grid; place-items: center; background: var(--verde-fundo); border: 2px solid var(--verde); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); animation: pm-pino var(--ciclo-palco) cubic-bezier(0.3, 1.5, 0.5, 1) infinite; }
+.pm-pino .ic { width: 18px; height: 18px; color: var(--verde); }
+@keyframes pm-pino { 0%, 28% { transform: scale(0.55); border-color: var(--app-borda); } 36% { transform: scale(1.25); } 42%, 100% { transform: scale(1); border-color: var(--verde); } }
+.pm-ficha { position: absolute; left: 12px; right: 12px; bottom: 12px; padding: 12px 14px; border-radius: 16px; background: #1f1f23; border: 1px solid var(--app-borda); box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4); animation: pm-ficha var(--ciclo-palco) cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
+@keyframes pm-ficha { 0%, 42% { opacity: 0; transform: translateY(30px); } 52%, 92% { opacity: 1; transform: none; } 99%, 100% { opacity: 0; transform: translateY(30px); } }
+.pm-cab { display: flex; align-items: center; gap: 10px; }
+.pm-cab i { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: var(--app-cartao); flex-shrink: 0; }
+.pm-cab i .ic { width: 19px; height: 19px; color: #e4e4e7; }
+.pm-cab div { flex: 1; min-width: 0; }
+.pm-cab b { display: block; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pm-cab small { display: block; font-size: 11px; color: var(--app-texto-2); }
+.pm-cab .aberto { color: var(--verde); font-weight: 700; }
+.pm-cab > .ic { width: 20px; height: 20px; color: var(--app-texto-2); }
+.pm-acoes { display: flex; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.pm-bt { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; background: #e4e4e7; color: #18181b; font-size: 12px; font-weight: 700; }
+.pm-bt .ic { width: 15px; height: 15px; }
+.pm-notas { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--app-texto-2); }
+.pm-notas .ic { width: 14px; height: 14px; }
+
+/* a compra conferida */
+.pc-topo { display: flex; align-items: center; gap: 8px; padding: 16px 18px; background: linear-gradient(180deg, #166534, var(--verde-fundo)); font-size: 13px; font-weight: 700; color: #dcfce7; animation: pc-topo var(--ciclo-palco) cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
+.pc-topo .ic { width: 18px; height: 18px; }
+@keyframes pc-topo { 0% { transform: translateY(-100%); } 8%, 100% { transform: none; } }
+.pc-corpo { padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.pc-rot { font-size: 11px; color: var(--app-texto-2); }
+.pc-total { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pc-total b { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+.pc-chip { font-size: 11px; font-weight: 700; color: var(--verde); background: var(--verde-fundo); border: 1px solid var(--verde-borda); border-radius: 999px; padding: 3px 9px; animation: pc-chip var(--ciclo-palco) cubic-bezier(0.3, 1.5, 0.5, 1) infinite; }
+@keyframes pc-chip { 0%, 12% { opacity: 0; transform: scale(0.7); } 18%, 94% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+.pc-sub { font-size: 10.5px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--app-texto-2); margin-top: 6px; }
+.pc-lin { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; background: var(--app-cartao); border: 1px solid var(--app-borda); font-size: 12.5px; font-weight: 600; animation: pc-lin var(--ciclo-palco) ease infinite; }
+.pc-lin span:last-child { display: flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.pc-lin .ic { width: 14px; height: 14px; }
+.pc-lin.subiu span:last-child { color: var(--amarelo); }
+.pc-lin.desceu span:last-child { color: var(--verde); }
+.pc-lin.igual span:last-child { color: var(--app-texto-2); font-weight: 500; }
+.pc-lin:nth-of-type(3) { animation-name: pc-lin-2; }
+.pc-lin:nth-of-type(4) { animation-name: pc-lin-3; }
+@keyframes pc-lin { 0%, 22% { opacity: 0; transform: translateX(-10px); } 28%, 94% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes pc-lin-2 { 0%, 26% { opacity: 0; transform: translateX(-10px); } 32%, 94% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes pc-lin-3 { 0%, 30% { opacity: 0; transform: translateX(-10px); } 36%, 94% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+
+/* o histórico: gasto por mês e o preço de um produto ao longo do tempo */
+.palco-hist { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.ph-cab small { display: block; font-size: 11px; color: var(--app-texto-2); }
+.ph-cab b { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+.ph-barras { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; height: 100px; align-items: end; }
+.ph-barras div { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; }
+.ph-barras i { width: 100%; height: calc(var(--h) * 80px); border-radius: 6px 6px 3px 3px; background: #3f3a55; transform-origin: bottom; animation: cresce var(--ciclo-palco) cubic-bezier(0.2, 0.8, 0.2, 1) infinite; animation-delay: calc(var(--n) * 0.08s); }
+.ph-barras .agora i { background: linear-gradient(180deg, var(--marca-3), var(--marca-2)); }
+.ph-barras span { font-size: 10px; color: var(--app-texto-2); }
+.ph-barras .agora span { color: #fafafa; font-weight: 700; }
+@keyframes cresce { 0% { transform: scaleY(0); } 14%, 92% { transform: scaleY(1); } 100% { transform: scaleY(0); } }
+.ph-prod { border-top: 1px solid var(--app-borda); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.ph-prod-cab { display: flex; justify-content: space-between; gap: 4px 8px; font-size: 11.5px; color: var(--app-texto-2); flex-wrap: wrap; }
+.ph-prod-cab b { color: var(--amarelo); font-weight: 700; }
+.ph-linha { display: block; width: 100%; height: auto; overflow: visible; }
+.ph-linha polyline { fill: none; stroke: var(--amarelo); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 340; stroke-dashoffset: 0; animation: desenha var(--ciclo-palco) ease-in-out infinite; }
+.ph-linha circle { fill: var(--amarelo); transform-box: fill-box; transform-origin: center; animation: ponto-final var(--ciclo-palco) ease infinite; }
+@keyframes desenha { 0%, 26% { stroke-dashoffset: 340; } 54%, 94% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes ponto-final { 0%, 52% { transform: scale(0); } 58% { transform: scale(1.6); } 64%, 94% { transform: scale(1); } 100% { transform: scale(0); } }
+.ph-eixo { display: flex; justify-content: space-between; font-size: 10px; color: var(--app-texto-2); font-variant-numeric: tabular-nums; }
+
+/* o resto do app */
+.mais { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--linha); border: 1px solid var(--linha); border-radius: 20px; overflow: hidden; }
+.mais article { position: relative; background: var(--fundo); padding: 28px 26px 30px; display: flex; flex-direction: column; gap: 10px; min-width: 0; --x: 50%; --y: 0%; }
+.mais article::before { content: ""; position: absolute; inset: 0; background: radial-gradient(260px circle at var(--x) var(--y), rgba(107, 73, 252, 0.22), transparent 70%); opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+.mais article:hover::before { opacity: 1; }
+.mais .ico { position: relative; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: var(--fundo-3); border: 1px solid var(--linha); transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1), border-color 0.3s ease; }
+.mais .ico .ic { width: 26px; height: 26px; color: var(--acento); }
+.mais article:hover .ico { transform: translateY(-4px) rotate(-6deg); border-color: var(--marca-2); }
+.mais h3, .mais p { position: relative; }
+.mais p { color: var(--texto-2); font-size: 16px; }
+@media (max-width: 900px) { .mais { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .mais { grid-template-columns: minmax(0, 1fr); } .mais article { padding: 24px 20px; } }
+
+/* quem paga */
+.gratis { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 56px; align-items: center; }
+.grande { font-family: var(--f-titulo); font-weight: 800; font-size: clamp(72px, 12vw, 148px); line-height: 1; letter-spacing: -0.04em; display: flex; align-items: flex-end; gap: 0.12em; }
+.grande .rs, .rolo-trilho { background: linear-gradient(120deg, var(--marca-1), var(--marca-2) 45%, var(--marca-3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* o degradê só pinta dentro da caixa da letra: a folga deixa o traço do "$" inteiro */
+.grande .rs { display: inline-block; padding: 0.12em 0.05em; margin: -0.12em -0.05em; }
+.rolo { display: inline-block; height: 1em; overflow: hidden; }
+.rolo-trilho { display: flex; flex-direction: column; transform: translateY(-9em); }
+.rolo-trilho span { height: 1em; line-height: 1; }
+.visto .rolo-trilho { animation: rodar 1.8s cubic-bezier(0.15, 0.7, 0.1, 1); }
+@keyframes rodar { from { transform: translateY(0); } }
+.gratis .texto { display: flex; flex-direction: column; gap: 16px; color: var(--texto-2); font-size: 18px; max-width: 34em; }
+.gratis .texto h2 { color: var(--texto); }
+.gratis .texto b { color: var(--texto); }
+@media (max-width: 860px) { .gratis { grid-template-columns: minmax(0, 1fr); gap: 20px; } }
+
+/* perguntas */
+.perguntas { display: flex; flex-direction: column; max-width: 46em; }
+.perguntas details { border-bottom: 1px solid var(--linha); }
+.perguntas details:first-child { border-top: 1px solid var(--linha); }
+.perguntas summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 2px; font-family: var(--f-titulo); font-weight: 600; font-size: 20px; }
+.perguntas summary::-webkit-details-marker { display: none; }
+.perguntas summary::after { content: "+"; font-family: var(--f-texto); font-weight: 400; font-size: 28px; line-height: 1; color: var(--acento); transition: transform 0.25s ease; }
+.perguntas details[open] summary::after { transform: rotate(45deg); }
+.perguntas details p { padding: 0 2px 24px; color: var(--texto-2); max-width: 40em; }
+.perguntas details[open] p { animation: abre 0.35s ease; }
+@keyframes abre { from { opacity: 0; transform: translateY(-6px); } }
+
+/* rodapé */
+.rodape { border-top: 1px solid var(--linha); padding-block: 40px 56px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 28px; font-size: 15px; color: var(--texto-3); }
+.rodape .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.rodape .marca { font-size: 17px; }
+.rodape .marca img { width: 28px; height: 28px; border-radius: 8px; }
+.rodape ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.rodape .breve em { font-style: normal; font-size: 12px; margin-left: 6px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--linha); }
+.email { user-select: all; color: var(--texto-2); }
+
+/* menos movimento: tudo parado no quadro final */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .voa { display: none; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-carrinho" viewBox="0 0 512 512"><path d="M80 70Q108 70 113.5 70.5Q119 71 124 75Q127 79 131 99Q133 114 134 116L134 118L289 118L444 118L448 120Q457 125 460 133Q463 138 461.5 148.5Q460 159 448 216Q433 289 432 293Q430 302 421 307L417 309L292 310Q168 310 168 311Q168 312 171 327L174 342L296 342Q419 342 423 344Q428 346 430 352Q433 358 430 364Q428 370 423 372Q419 374 287.5 374Q156 374 153 372Q148 370 146 365Q144 362 122 232L99 103L71 102Q44 102 41 101Q34 97 33 91Q32 88 32 87Q31 83 36 76Q38 73 41.5 71.5Q45 70 80 70ZM169 391Q179 388 190 393Q208 402 208 422Q208 434 200 443Q189 455 173.5 454Q158 453 149 439Q144 431 144 419Q146 397 169 391ZM392 391Q392 391 392 391Q396 390 402 390Q420 391 428.5 407.5Q437 424 427 439Q420 450 408.5 453Q397 456 386 451Q375 445 370 434Q366 422 370 410Q376 396 392 391Z"/></symbol><symbol id="i-nota" viewBox="0 0 512 512"><path d="M153 40Q156 38 160.5 38Q165 38 178 45L192 52L206 45Q220 38 224 38Q228 38 242 45L256 52L270 45Q284 38 288.5 38Q293 38 306 45L320 52L334 45Q348 38 352.5 38Q357 38 370 45L384 52L398 45Q412 38 416 38Q420 38 434 45L448 52L462 45Q475 38 480 38Q488 38 493 45L495 48L496 223Q496 397 495 404Q491 432 471.5 453.5Q452 475 425 483Q414 485 389.5 485.5Q365 486 246 486Q129 486 109.5 485.5Q90 485 79 482Q46 473 30.5 445Q15 417 16 365Q17 349 19 345Q25 331 40 327Q45 326 95 326L144 326L144 188Q144 50 145 48Q147 42 153 40ZM238 79L224 72L210 79Q198 85 193.5 85.5Q189 86 182 83Q176 80 176 80Q176 80 176 203L176 326L249 326Q323 326 326 328Q332 330 335 336Q336 340 336 368Q336 405 342 417Q359 452 396 454Q426 455 447 433Q457 422 462 407L464 401L464 240Q464 80 464 80Q464 80 458 83Q451 86 446.5 85.5Q442 85 430 79L416 72L402 79Q388 86 383.5 86Q379 86 366 79L352 72L338 79Q324 86 320 86Q316 86 302 79L288 72L274 79Q260 86 256 86Q252 86 238 79ZM217 136L221 134L320 134L419 134L423 136Q436 142 431 156Q428 163 419 165Q414 166 320 166Q226 166 221 165Q212 163 209 156Q205 142 217 136ZM423 216Q432 220 432 230Q432 240 423 244Q420 246 352 246Q294 246 286.5 245.5Q279 245 275 239Q273 236 273 230Q273 224 275 221Q277 218 280.5 216Q284 214 352 214Q420 214 423 216ZM304 376Q304 376 304 376L304 358L176 358L48 358L48 360Q48 386 50 402Q54 425 62.5 436Q71 447 89 452Q95 453 212 454Q212 454 329 454L325 450Q309 430 305 403Q304 394 304 376Z"/></symbol><symbol id="i-mapa" viewBox="0 0 512 512"><path d="M264 80L322 117L328 117L333 117L383 85Q433 52 436.5 50.5Q440 49 448 49Q456 49 461 51Q477 59 480 76Q480 82 480 228.5Q480 375 480 381Q478 392 470 399Q468 401 410 439.5Q352 478 347 481Q328 490 309 483Q304 481 248.5 445Q193 409 190 407.5Q187 406 183 406.5Q179 407 129.5 439Q80 471 76 473Q72 475 64 475Q56 475 51 473Q35 465 32 448Q32 443 32 295.5Q32 148 32 143Q34 133 41 126Q44 123 101.5 84Q159 45 164 43Q167 41 171.5 39.5Q176 38 186 38.5Q196 39 201 41Q206 43 264 80ZM202 79L201 77L201 227L201 377L204 379Q208 381 260 414.5Q312 448 312 448Q312 448 312 298L312 148L309 146Q305 144 254.5 112Q204 80 202 79ZM168 228Q168 187 168 153Q168 119 168 99Q168 79 167 79Q167 79 115 113L64 148L64 295Q64 443 64.5 443Q65 443 112.5 412Q160 381 164 379L168 377L168 228ZM448 229L448 229Q448 189 448 155Q448 121 448 101Q448 81 447 81Q447 81 399.5 112Q352 143 348 145Q348 145 344 147L344 296Q344 301 344 307Q344 307 345 443Q347 443 397 410Q397 410 448 376L448 229Z"/></symbol><symbol id="i-loja" viewBox="0 0 512 512"><path d="M114 40Q119 39 258 39Q374 39 388.5 39.5Q403 40 413 45Q436 55 446 76Q452 88 472 132.5Q492 177 493 181Q499 198 493 216Q487 236 471 249L464 254L464 354L464 454L474 454Q483 454 487 456Q500 462 495 476Q492 483 483 485Q478 486 256 486Q34 486 29 485Q20 483 17 476Q12 462 25 456Q29 454 38 454L48 454L48 354L48 254L45 252Q27 240 19 216Q17 210 17 198.5Q17 187 19 181Q20 177 40 132.5Q60 88 66 76Q81 47 114 40ZM390 71Q386 70 255.5 70Q125 70 121 71Q103 74 95 90Q89 102 69 146Q49 190 49 193Q45 207 57 219.5Q69 232 85 232Q101 232 113.5 221Q126 210 126 196Q126 190 131 185Q136 180 142 180Q149 180 153 184Q157 188 159 198Q160 210 169 219Q182 232 200 232Q218 232 231 218Q238 210 240 198Q241 189 245 185Q256 173 267 185Q271 189 272 198Q274 211 284 220Q299 234 319 231Q333 229 342 221Q352 211 353 198Q354 191 355 189Q358 183 364 181Q371 178 377 181Q385 185 386 198Q387 211 397 220Q406 230 420 232Q434 234 446 227Q455 222 460 212Q465 202 463 193Q463 190 443 146Q423 102 417 90Q409 74 390 71ZM148 243Q143 238 142.5 238Q142 238 139 242Q119 262 90 263L80 264L80 359L80 454L176 454L272 454L272 381L273 308L276 301Q285 283 303 279Q308 278 347 278L386 279L392 281Q409 289 414 305Q416 311 416 383L416 454L424 454L432 454L432 359L432 264L424 264Q396 264 375 244L370 239L363 245Q350 257 332 262Q326 263 312 263Q298 263 290 260Q274 255 263 244L256 238L251 244Q235 259 214 263Q195 266 178 261Q160 256 148 243ZM126 279Q129 278 175.5 278Q222 278 227 280Q248 285 254 307Q256 313 256 361Q256 409 254 413Q251 420 243 422Q238 422 173 422Q108 422 105 421Q98 417 97 411Q96 408 96 360Q96 312 98 306Q105 284 126 279ZM176 310Q143 310 137 310.5Q131 311 129 315Q128 317 128 353L128 390L176 390L224 390L224 353Q224 316 223 314Q222 312 219 311Q216 310 176 310ZM379 311Q379 311 379 311Q376 310 344 310Q312 310 310 310.5Q308 311 306 313Q306 313 304 315L304 385L304 454L344 454L384 454L384 385Q384 317 383 314.5Q382 312 379 311Z"/></symbol><symbol id="i-pessoa" viewBox="0 0 512 512"><path d="M237 40Q255 37 274 40Q307 45 330 68Q362 100 360 147Q359 174 346 200Q337 219 321 234Q301 253 276 260Q256 265 236 260Q210 253 189 231Q163 205 154 168Q152 159 152 144Q152 129 154 120Q160 91 179 70Q203 46 237 40ZM275 73Q259 68 244 71Q222 74 207 88Q181 112 184 150Q186 169 195 186Q208 214 232 224Q270 241 302 208Q328 181 328 143Q328 124 321 110Q307 81 275 73ZM228 296Q237 295 255.5 295Q274 295 283 296Q328 301 365 320Q448 361 463 444Q464 452 464 458Q459 482 437 486Q431 486 256 486Q81 486 75 486Q53 482 48 458Q48 452 49 444Q64 361 147 320Q184 301 228 296ZM272 327Q272 327 272 327Q208 322 155.5 351Q103 380 86 430Q80 446 80 452Q80 454 256 454Q432 454 432 452Q432 440 421 417Q403 379 363.5 355Q324 331 272 327Z"/></symbol><symbol id="i-livro" viewBox="0 0 512 512"><path d="M42 55Q47 54 61 54Q170 57 221 91Q229 96 239.5 106Q250 116 253 121Q256 125 256 125Q256 125 259 121Q262 116 272.5 106Q283 96 291 91Q332 64 411 56Q455 52 469 55Q482 57 490 68Q495 74 495.5 90Q496 106 496 230Q496 351 495.5 368Q495 385 491 391Q486 398 478.5 402Q471 406 453 406Q379 406 331 422Q299 432 276 457Q265 467 261.5 469Q258 471 251 469Q248 468 236 457Q219 439 199 429Q154 408 67 407Q39 406 32 402Q24 397 20 389Q17 383 16.5 365Q16 347 16 229Q16 106 16.5 90Q17 74 22 68Q30 57 42 55ZM81 87Q67 86 57 86L48 86L48 230L48 374L54 374Q61 375 71.5 375Q82 375 100 376Q188 382 232 411L240 416L240 292Q240 188 239.5 175Q239 162 234 152Q227 138 215 127Q177 93 81 87ZM464 230L464 230L464 86L452 86Q418 87 384 92Q301 105 278 152Q273 162 272.5 175Q272 188 272 292Q272 292 272 416L280 411Q311 391 358 382Q400 375 440 375Q451 375 458 374Q458 374 464 374L464 230Z"/></symbol><symbol id="i-coracaoVazio" viewBox="0 0 512 512"><path d="M146 71Q162 69 178 72Q192 74 206 81Q226 90 244 108L256 120L268 108Q286 90 305 81Q327 71 353 71Q379 71 401 82Q418 90 431 103Q454 127 462 162Q464 170 464 186Q464 219 454 249Q429 324 346 395Q293 439 269 451Q264 454 256 454Q248 454 243 451Q238 448 226 440Q141 380 99.5 326Q58 272 49 210Q48 202 48 186Q48 170 50 162Q59 121 90 95Q115 74 146 71ZM173 103Q173 103 173 103Q169 103 159.5 102.5Q150 102 147 103Q118 108 100 130Q86 146 82 168Q80 176 80.5 190.5Q81 205 82 213Q90 259 120 300.5Q150 342 208 387Q228 403 249 417Q249 417 256 422L263 417Q341 364 382 314Q416 271 427 227Q435 192 430 168Q426 147 413 131Q398 112 374 105Q358 100 340 103Q298 110 270 158Q265 166 256 166Q247 166 242 158Q214 111 173 103Z"/></symbol><symbol id="i-trocar" viewBox="0 0 512 512"><path d="M297 39Q299 39 303.5 38.5Q308 38 310.5 39Q313 40 371 98Q429 156 430 159Q434 166 430 173Q428 176 370 234.5Q312 293 308 293Q301 295 296 292Q290 289 289 283Q288 280 288 279Q288 278 288.5 274Q289 270 334 226L378 182L235 182Q92 182 89 180.5Q86 179 83.5 175.5Q81 172 81 166Q81 160 83 157Q85 154 88.5 152Q92 150 235 150L378 150L334 106Q289 62 289 58Q286 46 297 39ZM201 232Q201 232 201 232Q203 231 208 230.5Q213 230 215 232Q222 235 223 241Q224 244 224 245Q224 246 223.5 250Q223 254 178 298Q178 298 134 342L277 342Q420 342 423 344Q432 348 432 358Q432 368 423 372Q420 374 277 374Q277 374 134 374L178 418Q223 462 223.5 466Q224 470 224 471Q224 472 223 475Q222 481 216 484Q211 487 204 485Q200 485 141.5 426Q83 367 81 365Q78 358 81 351Q83 349 140.5 291Q198 233 201 232Z"/></symbol><symbol id="i-relogio" viewBox="0 0 512 512"><path d="M241 55Q256 54 269 55Q351 60 407 119Q452 167 462 234Q464 244 464 262Q464 280 462 290Q454 345 421 388Q405 411 382 427Q339 460 284 468Q274 470 256 470Q238 470 228 468Q173 460 130 427Q107 411 91 388Q58 345 50 290Q48 280 48 262Q48 244 50 234Q58 180 91 136Q107 114 130 97Q181 59 241 55ZM284 88Q278 87 261.5 86.5Q245 86 240 87Q212 90 193 98Q149 115 119.5 151Q90 187 82 235Q81 244 81 262Q81 280 82 289Q89 332 114 366Q139 400 178 420Q214 438 256 438Q298 438 334 420Q372 400 397 366.5Q422 333 430 290Q431 281 431 262.5Q431 244 430 235Q420 175 378 135Q338 98 284 88ZM252 119Q252 119 252 119Q258 117 263.5 120Q269 123 271 130Q272 133 272 197Q272 197 272 262L314 262Q355 262 359 264Q372 270 367 284Q364 292 355 294Q350 294 301 294Q301 294 252 294L248 292Q244 289 242 286Q242 286 240 283L240 208Q240 133 241 130Q243 121 252 119Z"/></symbol><symbol id="i-circulo" viewBox="0 0 512 512"><path d="M241 55Q271 53 301 59Q336 66 366 86Q448 137 462 234Q464 244 464 262Q464 280 462 290Q451 363 399 412Q352 458 284 468Q274 470 256 470Q238 470 228 468Q182 461 146 439Q65 387 50 290Q48 280 48 262Q48 244 50 234Q55 200 70 170Q94 121 140 89.5Q186 58 241 55ZM284 88Q284 88 284 88Q278 87 261.5 86.5Q245 86 240 87Q175 95 132 138Q92 178 82 235Q81 244 81 262Q81 280 82 289Q85 309 92 325Q114 382 166 413Q218 444 279 436Q337 429 378.5 388.5Q420 348 430 289Q431 280 431 262Q431 244 430 235Q421 180 383 140Q343 98 284 88Z"/></symbol><symbol id="i-pego" viewBox="0 0 512 512"><path d="M241 55Q256 54 269 55Q351 60 407 119Q452 167 462 234Q464 244 464 262Q464 280 462 290Q454 345 421 388Q405 411 382 427Q339 460 284 468Q274 470 256 470Q238 470 228 468Q173 460 130 427Q107 411 91 388Q58 345 50 290Q48 280 48 262Q48 244 50 234Q58 180 91 136Q107 114 130 97Q181 59 241 55ZM284 88Q278 87 261.5 86.5Q245 86 240 87Q212 90 193 98Q149 115 119.5 151Q90 187 82 235Q81 244 81 262Q81 280 82 289Q89 332 114 366Q139 400 178 420Q214 438 256 438Q298 438 334 420Q372 400 397 366.5Q422 333 430 290Q431 281 431 262.5Q431 244 430 235Q420 175 378 135Q338 98 284 88ZM345 168Q345 168 345 168Q348 167 352.5 166.5Q357 166 359 168Q365 171 367 176Q370 183 366 190Q364 193 296 274Q228 355 225 356Q218 360 210 356Q208 355 177.5 321.5Q147 288 145 284Q140 272 151 265Q160 259 168 264Q171 266 194 292Q217 318 218.5 316Q220 314 278 244.5Q336 175 339.5 172Q343 169 345 168Z"/></symbol><symbol id="i-check" viewBox="0 0 512 512"><path d="M411 119Q411 119 411 119Q416 117 420 119Q428 121 431 129Q434 137 429.5 143Q425 149 313 276.5Q201 404 199 404Q194 407 188 405Q184 404 133.5 353.5Q83 303 81 301Q77 292 83 285Q91 274 103 280Q105 281 148 324Q148 324 191 367L193 364Q195 362 299.5 242.5Q404 123 406 121.5Q408 120 411 119Z"/></symbol><symbol id="i-somar" viewBox="0 0 512 512"><path d="M248 105Q248 105 248 105Q253 101 259.5 102.5Q266 104 270 110Q270 110 272 113L272 179L272 246L338 246L404 246L408 248Q416 253 416 262Q416 271 408 276Q408 276 405 278L339 278L272 278L272 345L272 411L270 414Q265 422 256 422Q247 422 242 414Q242 414 240 411L240 345L240 278L173 278L107 278L104 276Q96 271 96 262Q96 253 103 249Q103 249 107 246L173 246L240 246L240 179L240 113L242 110Q244 107 248 105Z"/></symbol><symbol id="i-etiqueta" viewBox="0 0 512 512"><path d="M304 39Q306 38 374.5 38.5Q443 39 446 39Q457 42 466 50.5Q475 59 478 70Q480 75 480 138Q481 211 477 219Q475 223 349 349Q223 475 218 479Q194 495 170 479Q165 476 103.5 414.5Q42 353 39 348Q32 338 32 325Q32 312 38 302Q40 297 167 171Q262 76 280 58.5Q298 41 304 39ZM375 70L313 70L190 193Q67 316 65 319Q63 324 66 330Q67 333 127 393Q176 442 183.5 448.5Q191 455 197 454Q200 453 324 329L448 205L448 143Q448 80 446.5 76.5Q445 73 441.5 71.5Q438 70 375 70ZM373 104Q373 104 373 104Q386 99 398 105Q413 112 415.5 128.5Q418 145 406 156Q393 170 374.5 164Q356 158 352 139Q351 128 357 118Q363 108 373 104Z"/></symbol><symbol id="i-sol" viewBox="0 0 512 512"><path d="M248 41Q253 37 259.5 38.5Q266 40 270 46Q272 49 272 76Q272 107 267.5 112.5Q263 118 256 118Q249 118 244.5 112.5Q240 107 240 76Q240 49 242 46Q244 43 248 41ZM102 101Q109 97 116 101Q120 102 138.5 121Q157 140 158 144Q161 154 153.5 160.5Q146 167 136 163Q132 161 113.5 142Q95 123 94 120Q90 107 102 101ZM396 101Q404 97 411 101Q418 105 419 113Q419 118 416 122.5Q413 127 398 142Q376 165 369 165Q362 165 357 160Q351 152 355 143Q356 139 374.5 120.5Q393 102 396 101ZM241 167Q244 167 258.5 167Q273 167 281 169Q309 177 329 199Q346 219 351 247Q354 263 350 279Q345 309 324 330Q303 351 273 356Q257 360 241 357Q205 351 182.5 324Q160 297 160 262Q160 239 170 220Q192 176 241 167ZM274 201Q259 196 245 199Q227 202 213.5 214Q200 226 195 244Q193 250 193 262Q193 274 195 280Q205 313 238 324Q256 329 274 324Q307 313 317 280Q319 274 319 262Q319 250 317 244Q307 210 274 201ZM44 246Q47 246 73 246Q95 246 99.5 247Q104 248 108 251Q119 263 106 274Q101 278 70 278Q43 278 40 276Q27 268 34 254Q37 248 44 246ZM442 246L468 246L472 248Q480 253 480 262Q480 271 472 276Q469 278 442 278Q411 278 406 274Q397 266 401 256Q404 248 411 247Q413 246 414 246Q415 246 442 246ZM144 360Q152 360 156.5 367Q161 374 157 381Q156 385 137.5 403.5Q119 422 116 423Q108 427 101 423Q94 419 93 411Q93 406 96 401.5Q99 397 114 382Q133 363 136.5 361Q140 359 144 360ZM364 360Q369 358 376 361Q380 363 398.5 382Q417 401 418 404Q421 414 413.5 421Q406 428 396 423Q393 422 374.5 403.5Q356 385 355 381Q352 375 354.5 369Q357 363 364 360ZM250 407Q250 407 250 407Q256 405 262 407Q269 410 271 418Q272 421 272 448Q272 475 270 478Q265 486 256 486Q247 486 242 478Q240 475 240 447.5Q240 420 241 417Q244 410 250 407Z"/></symbol><symbol id="i-cima" viewBox="0 0 512 512"><path d="M246 169Q246 169 246 169Q250 166 256 166Q264 166 274 174.5Q284 183 345 245Q405 305 414 315Q423 325 424 332Q425 341 419 348.5Q413 356 404 357Q396 359 389 355Q386 354 321 289Q321 289 256 224L191 289Q126 354 123 355Q116 359 108 357Q99 356 93 348.5Q87 341 88 332Q89 325 98 315Q107 305 167 245Q241 171 246 169Z"/></symbol><symbol id="i-baixo" viewBox="0 0 512 512"><path d="M102 168Q102 168 102 168Q113 163 123 169Q127 171 191 235Q191 235 256 300L321 235Q385 171 389 169Q398 163 409 168Q426 175 424 192Q423 199 414 209Q405 219 345 279Q284 341 274 349.5Q264 358 256 358Q248 358 238 349.5Q228 341 167 279Q107 219 98 209Q89 199 88 192Q86 176 102 168Z"/></symbol></svg>
+
+<div class="faixa">
+  <div class="miolo">
+
+    <header class="topo">
+      <a class="marca" href="#"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzNmM2Y0NiIvPjxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExMiAxMTIpIHNjYWxlKDAuNTYyNSkiIGZpbGw9IiNmNWYzZmEiIGQ9Ik04MCA3MFExMDggNzAgMTEzLjUgNzAuNVExMTkgNzEgMTI0IDc1UTEyNyA3OSAxMzEgOTlRMTMzIDExNCAxMzQgMTE2TDEzNCAxMThMMjg5IDExOEw0NDQgMTE4TDQ0OCAxMjBRNDU3IDEyNSA0NjAgMTMzUTQ2MyAxMzggNDYxLjUgMTQ4LjVRNDYwIDE1OSA0NDggMjE2UTQzMyAyODkgNDMyIDI5M1E0MzAgMzAyIDQyMSAzMDdMNDE3IDMwOUwyOTIgMzEwUTE2OCAzMTAgMTY4IDMxMVExNjggMzEyIDE3MSAzMjdMMTc0IDM0MkwyOTYgMzQyUTQxOSAzNDIgNDIzIDM0NFE0MjggMzQ2IDQzMCAzNTJRNDMzIDM1OCA0MzAgMzY0UTQyOCAzNzAgNDIzIDM3MlE0MTkgMzc0IDI4Ny41IDM3NFExNTYgMzc0IDE1MyAzNzJRMTQ4IDM3MCAxNDYgMzY1UTE0NCAzNjIgMTIyIDIzMkw5OSAxMDNMNzEgMTAyUTQ0IDEwMiA0MSAxMDFRMzQgOTcgMzMgOTFRMzIgODggMzIgODdRMzEgODMgMzYgNzZRMzggNzMgNDEuNSA3MS41UTQ1IDcwIDgwIDcwWk0xNjkgMzkxUTE3OSAzODggMTkwIDM5M1EyMDggNDAyIDIwOCA0MjJRMjA4IDQzNCAyMDAgNDQzUTE4OSA0NTUgMTczLjUgNDU0UTE1OCA0NTMgMTQ5IDQzOVExNDQgNDMxIDE0NCA0MTlRMTQ2IDM5NyAxNjkgMzkxWk0zOTIgMzkxUTM5MiAzOTEgMzkyIDM5MVEzOTYgMzkwIDQwMiAzOTBRNDIwIDM5MSA0MjguNSA0MDcuNVE0MzcgNDI0IDQyNyA0MzlRNDIwIDQ1MCA0MDguNSA0NTNRMzk3IDQ1NiAzODYgNDUxUTM3NSA0NDUgMzcwIDQzNFEzNjYgNDIyIDM3MCA0MTBRMzc2IDM5NiAzOTIgMzkxWiIvPjwvc3ZnPg==" alt="">Super Lista</a>
+      <nav aria-label="Seções">
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#precos">Preços</a>
+        <a href="#perguntas">Perguntas</a>
+      </nav>
+    </header>
+
+    <section class="heroi">
+      <div class="heroi-texto">
+        <h1>A lista de compras que aprende com a <em>sua nota</em>.</h1>
+        <p class="chamada">Monte a lista com quem mora com você, marque o que pegou e, no caixa, leia o QR da nota fiscal. O app guarda quanto você pagou em cada item e mostra quanto a próxima lista sai em cada mercado perto de casa.</p>
+        <div class="acoes">
+          <span class="loja" role="link" aria-disabled="true"><svg class="ic"><use href="#i-carrinho"/></svg><span><small>Em breve</small>na Google Play</span></span>
+          <p class="aviso-rj">Grátis, para Android. A leitura da nota, por enquanto, é só para notas do estado do Rio de Janeiro.</p>
+        </div>
+      </div>
+
+      <div class="cena" aria-hidden="true">
+        <div class="cupom">
+          <div class="papel">
+            <p class="c forte">MERCADO FLOR DO MÉIER LTDA</p>
+            <p class="c">CNPJ 12.345.678/0001-90</p>
+            <p class="c">R. DIAS DA CRUZ, 1000 · MÉIER<br>RIO DE JANEIRO · RJ</p>
+            <hr>
+            <p class="c">DOCUMENTO AUXILIAR DA NOTA FISCAL<br>DE CONSUMIDOR ELETRÔNICA</p>
+            <hr>
+            <div class="itens">
+              <div class="lin" data-item="arroz"><span>ARROZ AGULHINHA T1 5KG</span><span>24,90</span></div>
+              <div class="lin" data-item="feijao"><span>FEIJAO PRETO 1KG</span><span>15,98</span><span class="det">2 UN x 7,99</span></div>
+              <div class="lin" data-item="cafe"><span>CAFE TORRADO MOIDO 500G</span><span>18,49</span></div>
+              <div class="lin"><span>LEITE UHT INTEGRAL 1L</span><span>29,34</span><span class="det">6 UN x 4,89</span></div>
+              <div class="lin"><span>TOMATE</span><span>6,75</span><span class="det">0,845 KG x 7,99</span></div>
+              <div class="lin"><span>BANANA PRATA</span><span>8,46</span><span class="det">1,210 KG x 6,99</span></div>
+              <div class="lin" data-item="frango"><span>PEITO DE FRANGO</span><span>24,09</span><span class="det">1,100 KG x 21,90</span></div>
+              <div class="lin" data-item="azeite"><span>AZEITE EXTRA VIRGEM 500ML</span><span>39,90</span></div>
+            </div>
+            <hr>
+            <div class="lin"><span>QTD. TOTAL DE ITENS</span><span>8</span></div>
+            <div class="lin total forte"><span>VALOR A PAGAR R$</span><span>167,91</span></div>
+            <div class="lin"><span>Cartão de Débito</span><span>167,91</span></div>
+            <hr>
+            <p class="c">Consulte pela chave de acesso</p>
+            <p class="chave">3325 1012 3456 7800 0190 6500 1000 0123 4510 0012 3456</p>
+            <div class="qr-caixa"><svg data-qr="7" viewBox="0 0 25 25" shape-rendering="crispEdges"></svg></div>
+          </div>
+        </div>
+
+        <span class="voa" id="voa"><svg class="ic"><use href="#i-etiqueta"/></svg><span id="voa-texto"></span></span>
+
+        <div class="celular">
+          <div class="tela">
+            <div class="app-topo">
+              <div class="app-titulo">Compra da semana</div>
+              <div class="app-quem">
+                <div class="bolinhas"><span class="bolinha" style="background:#93c5fd">V</span><span class="bolinha" style="background:#f59e0b">A</span></div>
+                Você e Ana
+                <span class="ao-vivo">ao vivo</span>
+              </div>
+              <div class="app-abas">
+                <div class="app-aba on"><svg class="ic"><use href="#i-carrinho"/></svg>Carrinho</div>
+                <div class="app-aba"><svg class="ic"><use href="#i-coracaoVazio"/></svg>Recorrentes</div>
+              </div>
+              <div class="app-conta"><span><b id="faltam">5</b> pra pegar</span><span id="pegos">3 de 8 pegos</span></div>
+              <div class="app-barra"><i id="barra"></i></div>
+            </div>
+            <div class="app-corpo">
+              <div class="app-setor"><span>Hortifrúti</span><span>2</span></div>
+              <div class="app-item pego"><svg class="ic"><use href="#i-pego"/></svg><div><b>Tomate</b><small>pego por Ana</small></div></div>
+              <div class="app-item pego"><svg class="ic"><use href="#i-pego"/></svg><div><b>Banana prata</b><small>pego por você</small></div></div>
+              <div class="app-setor"><span>Laticínios</span><span>1</span></div>
+              <div class="app-item pego"><svg class="ic"><use href="#i-pego"/></svg><div><b>Leite integral 1 L</b><small>pego por Ana · 6 un</small></div></div>
+              <div class="app-setor"><span>Açougue</span><span>1</span></div>
+              <div class="app-item" data-item="frango" data-quem="você" data-etiqueta="PEITO DE FRANGO · 24,09"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Peito de frango</b><small>1 kg</small></div></div>
+              <div class="app-setor"><span>Mercearia</span><span>4</span></div>
+              <div class="app-item" data-item="arroz" data-quem="Ana" data-etiqueta="ARROZ 5KG · 24,90"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Arroz agulhinha 5 kg</b><small>R$ 24,90 da última vez</small></div></div>
+              <div class="app-item" data-item="cafe" data-quem="você" data-etiqueta="CAFE 500G · 18,49"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Café 500 g</b><small>R$ 18,49 da última vez</small></div></div>
+              <div class="app-item" data-item="feijao" data-quem="Ana" data-etiqueta="FEIJAO 1KG x2 · 15,98"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Feijão preto 1 kg</b><small>2 un</small></div></div>
+              <div class="app-item" data-item="azeite" data-quem="você" data-etiqueta="AZEITE 500ML · 39,90"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Azeite 500 ml</b><small>1 un</small></div></div>
+            </div>
+            <div class="app-aviso" id="aviso"><span class="bolinha" style="background:#f59e0b">A</span><span id="aviso-texto">Ana pegou Arroz agulhinha 5 kg</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="faixa">
+  <div class="miolo">
+
+    <section class="secao" id="como-funciona">
+      <div class="secao-cab">
+        <span class="olho">Como funciona</span>
+        <h2>Na ordem de uma compra de verdade.</h2>
+      </div>
+      <ol class="passos">
+        <li>
+          <div class="mini mini-lista" aria-hidden="true">
+            <div class="m-item"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Arroz agulhinha 5 kg</b></div></div>
+            <div class="m-item"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Feijão preto 1 kg</b></div></div>
+            <div class="m-item novo"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Café 500 g</b></div></div>
+            <div class="m-campo"><svg class="ic"><use href="#i-somar"/></svg><span class="ph">Adicionar item</span><span class="dig">Café 500 g</span></div>
+          </div>
+          <h3>Monte a lista</h3>
+          <p>Separada pelos setores do mercado. Quem você convidar edita junto, e o que um marca aparece no celular do outro na hora.</p>
+        </li>
+        <li>
+          <div class="mini mini-pega" aria-hidden="true">
+            <div class="m-item pego"><svg class="ic"><use href="#i-pego"/></svg><div><b>Tomate</b><small>pego por Ana</small></div></div>
+            <div class="m-item alvo"><span class="troca-ic"><svg class="ic vazio"><use href="#i-circulo"/></svg><svg class="ic cheio"><use href="#i-pego"/></svg></span><div><b class="riscar">Leite integral 1 L</b><small style="color: var(--verde)">pego por você</small></div></div>
+            <div class="m-item"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Peito de frango</b></div></div>
+          </div>
+          <h3>Compre</h3>
+          <p>Toque no item quando ele entrar no carrinho. Quem está em casa vê o que já foi pego e para de mandar mensagem.</p>
+        </li>
+        <li>
+          <div class="mini mini-nota" aria-hidden="true">
+            <div class="dados">
+              <div class="d-cab"><i><svg class="ic"><use href="#i-nota"/></svg></i><div><b>Flor do Méier</b><small>hoje · 8 itens</small></div><span class="tot">R$ 167,91</span></div>
+              <div class="d-lin"><span>Arroz agulhinha 5 kg</span><span>24,90</span></div>
+              <div class="d-lin"><span>Feijão preto 1 kg · 2 un</span><span>15,98</span></div>
+              <div class="d-lin"><span>Café 500 g</span><span>18,49</span></div>
+              <div class="d-lin resto"><span>+ 5 itens</span></div>
+            </div>
+            <div class="cam">
+              <div class="mira">
+                <div class="qr-papel"><svg data-qr="23" viewBox="0 0 25 25" shape-rendering="crispEdges"></svg><span class="lido"></span></div>
+                <span class="varre"></span>
+              </div>
+              <span class="rot-lido"><svg class="ic"><use href="#i-check"/></svg>Código lido</span>
+            </div>
+          </div>
+          <h3>Leia a nota</h3>
+          <p>Aponte a câmera para o QR do cupom. O app busca a nota na Sefaz e guarda cada produto com o preço que você pagou.</p>
+        </li>
+        <li>
+          <div class="mini mini-mapa" aria-hidden="true">
+            <span class="casa"></span>
+            <div class="pino melhor" style="left: 12%; top: 18%"><span class="balao">R$ 154,30</span><i><svg class="ic"><use href="#i-loja"/></svg></i></div>
+            <div class="pino" style="left: 46%; top: 8%"><span class="balao">R$ 167,91</span><i><svg class="ic"><use href="#i-loja"/></svg></i></div>
+            <div class="pino" style="left: 62%; top: 52%"><span class="balao">R$ 176,85</span><i><svg class="ic"><use href="#i-loja"/></svg></i></div>
+          </div>
+          <h3>Compare</h3>
+          <p>Na próxima lista, veja no mapa quanto ela custa em cada mercado por perto, pelo que outras pessoas pagaram lá.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="secao" id="precos">
+      <div class="precos">
+        <div class="secao-cab">
+          <span class="olho">Preço de nota, não de folheto</span>
+          <h2>Quanto a sua lista custa ali na esquina?</h2>
+          <p>Os preços vêm das notas fiscais de quem usa o app, conferidas na Sefaz. Ou seja, o que alguém pagou no caixa, com a data da compra. Você vê quantos itens da lista têm preço em cada loja e há quantos dias o preço mais antigo foi pago.</p>
+          <p class="troca"><b>O seu preço só entra na conta se você permitir</b>, e entra sem o seu nome. É uma troca: quem compartilha o preço vê o preço dos outros.</p>
+        </div>
+
+        <div class="folha" data-observar aria-label="Exemplo da comparação entre mercados">
+          <div class="folha-cab"><b>Compra da semana · 8 itens</b><span class="exemplo">Exemplo</span></div>
+          <p class="folha-sub">Mercados a até 2 km de casa</p>
+          <div class="mercado melhor">
+            <svg class="ic"><use href="#i-loja"/></svg>
+            <b>Sete Irmãos · Cachambi</b><span class="valor" data-valor="154.30">R$ 154,30</span>
+            <small>1,2 km · 8 de 8 itens com preço</small><span class="dif">R$ 13,61 a menos</span>
+          </div>
+          <div class="mercado">
+            <svg class="ic"><use href="#i-loja"/></svg>
+            <b>Flor do Méier</b><span class="valor" data-valor="167.91">R$ 167,91</span>
+            <small>0,4 km · onde você comprou</small><span class="dif">sua nota</span>
+          </div>
+          <div class="mercado">
+            <svg class="ic"><use href="#i-loja"/></svg>
+            <b>Hortimercado do Engenho</b><span class="valor" data-valor="176.85">R$ 176,85</span>
+            <small>2,0 km · 7 de 8 itens com preço</small><span class="dif">R$ 8,94 a mais</span>
+          </div>
+          <p class="folha-pe"><svg class="ic"><use href="#i-relogio"/></svg>Preço mais antigo desta conta: pago há 6 dias</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao" id="no-mercado">
+      <div class="secao-cab">
+        <span class="olho">No mercado</span>
+        <h2>O preço de cada item, onde você está.</h2>
+      </div>
+      <div class="dupla">
+        <div class="bloco">
+          <div class="palco" aria-hidden="true">
+            <div class="pf-lista">
+              <div class="app-setor"><span>Mercearia</span><span>3</span></div>
+              <div class="m-item"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Arroz agulhinha 5 kg</b></div></div>
+              <div class="m-item toque"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Café 500 g</b></div></div>
+              <div class="m-item"><svg class="ic"><use href="#i-circulo"/></svg><div><b>Azeite 500 ml</b></div></div>
+            </div>
+            <div class="pf-sombra"></div>
+            <div class="pf-folha">
+              <span class="alca"></span>
+              <div class="pf-cab"><div><b>Café torrado e moído 500 g</b><small>Mercearia</small></div><svg class="ic"><use href="#i-coracaoVazio"/></svg></div>
+              <div class="pf-qtd"><span>−</span><b>1</b><span>+</span></div>
+              <div class="pf-preco"><span>Aqui no Flor do Méier</span><b>R$ 18,49</b></div>
+              <div class="pf-perto"><svg class="ic"><use href="#i-loja"/></svg><div><b>Mais barato perto: R$ 16,90</b><small>no Sete Irmãos, a 1,2 km · R$ 1,59 a menos</small></div></div>
+            </div>
+          </div>
+          <h3>Cada item com o seu preço</h3>
+          <p>Toque num item da lista e veja quanto ele custa no mercado em que você está e se tem mais barato por perto, com a distância até lá.</p>
+        </div>
+        <div class="bloco">
+          <div class="palco palco-mapa" aria-hidden="true">
+            <span class="selo-lojas">65 mil lojas no RJ</span>
+            <div class="pontos" data-pontos="46"></div>
+            <span class="pm-voce"></span>
+            <span class="pm-pino"><svg class="ic"><use href="#i-loja"/></svg></span>
+            <div class="pm-ficha">
+              <div class="pm-cab"><i><svg class="ic"><use href="#i-loja"/></svg></i><div><b>Sete Irmãos · Cachambi</b><small><span class="aberto">Aberto</span> até 22h · 1,2 km</small></div><svg class="ic"><use href="#i-coracaoVazio"/></svg></div>
+              <div class="pm-acoes"><span class="pm-bt"><svg class="ic"><use href="#i-mapa"/></svg>Como chegar</span><span class="pm-notas"><svg class="ic"><use href="#i-nota"/></svg>3 notas suas aqui</span></div>
+            </div>
+          </div>
+          <h3>65 mil mercados do Rio no mapa</h3>
+          <p>Veja as lojas perto de você e abra a ficha de cada uma: endereço, horário, como chegar e as notas que você já leu ali.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao" id="depois-da-compra">
+      <div class="secao-cab">
+        <span class="olho">Depois da compra</span>
+        <h2>Quanto você gastou, e o que subiu.</h2>
+      </div>
+      <div class="dupla">
+        <div class="bloco">
+          <div class="palco" aria-hidden="true">
+            <div class="pc-topo"><svg class="ic"><use href="#i-check"/></svg>Nota lida e conferida</div>
+            <div class="pc-corpo">
+              <small class="pc-rot">Flor do Méier · hoje · 8 itens</small>
+              <div class="pc-total"><b>R$ 167,91</b><span class="pc-chip">R$ 4,50 abaixo do estimado</span></div>
+              <p class="pc-sub">O que mudou desde a última vez</p>
+              <div class="pc-lin subiu"><span>Café 500 g</span><span><svg class="ic"><use href="#i-cima"/></svg>+ R$ 2,10</span></div>
+              <div class="pc-lin desceu"><span>Azeite 500 ml</span><span><svg class="ic"><use href="#i-baixo"/></svg>− R$ 3,00</span></div>
+              <div class="pc-lin igual"><span>Leite integral 1 L</span><span>mesmo preço</span></div>
+            </div>
+          </div>
+          <h3>A compra conferida</h3>
+          <p>Ao ler a nota, o app mostra quanto você pagou de verdade contra o que tinha estimado e o que mudou de preço desde a última compra.</p>
+        </div>
+        <div class="bloco">
+          <div class="palco palco-hist" aria-hidden="true">
+            <div class="ph-cab"><small>Outubro até agora</small><b>R$ 642,30</b></div>
+            <div class="ph-barras">
+              <div style="--h: 0.906; --n: 0"><i></i><span>mai</span></div>
+              <div style="--h: 0.932; --n: 1"><i></i><span>jun</span></div>
+              <div style="--h: 0.889; --n: 2"><i></i><span>jul</span></div>
+              <div style="--h: 1; --n: 3"><i></i><span>ago</span></div>
+              <div style="--h: 0.956; --n: 4"><i></i><span>set</span></div>
+              <div class="agora" style="--h: 0.973; --n: 5"><i></i><span>out</span></div>
+            </div>
+            <div class="ph-prod">
+              <div class="ph-prod-cab"><span>Café 500 g · o que você pagou</span><b>+ R$ 2,59 desde junho</b></div>
+              <svg class="ph-linha" viewBox="0 0 300 52"><polyline points="8,41 79,37.3 150,34.9 221,34.9 292,8.6"/><circle cx="292" cy="8.6" r="4.5"/></svg>
+              <div class="ph-eixo"><span>jun · R$ 15,90</span><span>out · R$ 18,49</span></div>
+            </div>
+          </div>
+          <h3>O seu histórico, mês a mês</h3>
+          <p>Quanto você gasta por mês e quanto cada produto custou ao longo do tempo. Vem só das suas notas, sem precisar compartilhar nada.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao">
+      <div class="secao-cab">
+        <span class="olho">E mais</span>
+        <h2>O que mais cabe numa ida ao mercado.</h2>
+      </div>
+      <div class="mais">
+        <article>
+          <span class="ico"><svg class="ic"><use href="#i-pessoa"/></svg></span>
+          <h3>Lista da casa toda</h3>
+          <p>Convide por código ou QR. Todo mundo edita, e cada item mostra quem pegou.</p>
+        </article>
+        <article>
+          <span class="ico"><svg class="ic"><use href="#i-coracaoVazio"/></svg></span>
+          <h3>Recorrentes</h3>
+          <p>O que você compra sempre fica guardado. O app aprende o ritmo de cada item, sugere o que aparece em toda nota e põe tudo no carrinho com um toque.</p>
+        </article>
+        <article>
+          <span class="ico"><svg class="ic"><use href="#i-livro"/></svg></span>
+          <h3>Receitas</h3>
+          <p>Guarde a receita, até com o link do vídeo, e jogue os ingredientes que faltam direto na lista.</p>
+        </article>
+        <article>
+          <span class="ico"><svg class="ic"><use href="#i-trocar"/></svg></span>
+          <h3>Rachar a conta</h3>
+          <p>Dividiu a compra com alguém? O app separa a parte de cada um a partir da nota.</p>
+        </article>
+        <article>
+          <span class="ico"><svg class="ic"><use href="#i-sol"/></svg></span>
+          <h3>Uma lista pra cada ocasião</h3>
+          <p>A compra da casa fica sempre lá. O churrasco de sábado ganha uma lista só dele, com quem vai, e você apaga quando a festa acabar.</p>
+        </article>
+        <article>
+          <span class="ico"><svg class="ic"><use href="#i-carrinho"/></svg></span>
+          <h3>Começa sem cadastro</h3>
+          <p>Abra e já monte a lista. A conta só é pedida quando você precisar dela.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="secao">
+      <div class="gratis" data-observar>
+        <div class="grande" role="img" aria-label="R$ 0"><span class="rs">R$</span><span class="rolo" aria-hidden="true"><span class="rolo-trilho"><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span><span>0</span></span></span></div>
+        <div class="texto">
+          <h2>Grátis, e vai continuar.</h2>
+          <p>Quem vai pagar as contas do app são os mercados do bairro e, quando houver muita gente usando, as marcas.</p>
+          <p><b>Ninguém recebe o seu nome nem a sua lista.</b> O que pode ser usado é o preço somado de muita gente junta, sem dizer quem comprou.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao" id="perguntas">
+      <div class="secao-cab">
+        <span class="olho">Perguntas</span>
+        <h2>Antes de baixar.</h2>
+      </div>
+      <div class="perguntas">
+        <details>
+          <summary>Funciona fora do Rio de Janeiro?</summary>
+          <p>A lista funciona em qualquer lugar. A leitura da nota e o mapa de mercados, por enquanto, são só do estado do Rio de Janeiro: cada estado tem o seu portal de nota fiscal, e cada um precisa ser ensinado ao app.</p>
+        </details>
+        <details>
+          <summary>Preciso criar conta?</summary>
+          <p>Não para começar. A lista funciona sem cadastro. A conta é pedida quando você for ler uma nota ou chamar outra pessoa para a lista, e o que você já tinha montado vai junto.</p>
+        </details>
+        <details>
+          <summary>Tem para iPhone?</summary>
+          <p>Ainda não. O app começa pelo Android.</p>
+        </details>
+        <details>
+          <summary>O que acontece com os meus dados?</summary>
+          <p>Está tudo na <a href="privacidade.html">política de privacidade</a>. Você pode apagar a sua conta a qualquer momento pelo próprio app, em Perfil, ou <a href="excluir-conta.html">pedir por e-mail</a>.</p>
+        </details>
+        <details>
+          <summary>O preço que aparece é confiável?</summary>
+          <p>É o preço de uma nota fiscal de verdade, conferida na Sefaz, com a data em que foi pago. Preço de mercado muda: por isso o app mostra há quantos dias cada preço foi visto.</p>
+        </details>
+      </div>
+    </section>
+
+    <footer class="rodape">
+      <div class="col">
+        <a class="marca" href="#"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzNmM2Y0NiIvPjxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExMiAxMTIpIHNjYWxlKDAuNTYyNSkiIGZpbGw9IiNmNWYzZmEiIGQ9Ik04MCA3MFExMDggNzAgMTEzLjUgNzAuNVExMTkgNzEgMTI0IDc1UTEyNyA3OSAxMzEgOTlRMTMzIDExNCAxMzQgMTE2TDEzNCAxMThMMjg5IDExOEw0NDQgMTE4TDQ0OCAxMjBRNDU3IDEyNSA0NjAgMTMzUTQ2MyAxMzggNDYxLjUgMTQ4LjVRNDYwIDE1OSA0NDggMjE2UTQzMyAyODkgNDMyIDI5M1E0MzAgMzAyIDQyMSAzMDdMNDE3IDMwOUwyOTIgMzEwUTE2OCAzMTAgMTY4IDMxMVExNjggMzEyIDE3MSAzMjdMMTc0IDM0MkwyOTYgMzQyUTQxOSAzNDIgNDIzIDM0NFE0MjggMzQ2IDQzMCAzNTJRNDMzIDM1OCA0MzAgMzY0UTQyOCAzNzAgNDIzIDM3MlE0MTkgMzc0IDI4Ny41IDM3NFExNTYgMzc0IDE1MyAzNzJRMTQ4IDM3MCAxNDYgMzY1UTE0NCAzNjIgMTIyIDIzMkw5OSAxMDNMNzEgMTAyUTQ0IDEwMiA0MSAxMDFRMzQgOTcgMzMgOTFRMzIgODggMzIgODdRMzEgODMgMzYgNzZRMzggNzMgNDEuNSA3MS41UTQ1IDcwIDgwIDcwWk0xNjkgMzkxUTE3OSAzODggMTkwIDM5M1EyMDggNDAyIDIwOCA0MjJRMjA4IDQzNCAyMDAgNDQzUTE4OSA0NTUgMTczLjUgNDU0UTE1OCA0NTMgMTQ5IDQzOVExNDQgNDMxIDE0NCA0MTlRMTQ2IDM5NyAxNjkgMzkxWk0zOTIgMzkxUTM5MiAzOTEgMzkyIDM5MVEzOTYgMzkwIDQwMiAzOTBRNDIwIDM5MSA0MjguNSA0MDcuNVE0MzcgNDI0IDQyNyA0MzlRNDIwIDQ1MCA0MDguNSA0NTNRMzk3IDQ1NiAzODYgNDUxUTM3NSA0NDUgMzcwIDQzNFEzNjYgNDIyIDM3MCA0MTBRMzc2IDM5NiAzOTIgMzkxWiIvPjwvc3ZnPg==" alt="">Super Lista</a>
+        <span>Feito no Rio de Janeiro.</span>
+      </div>
+      <div class="col">
+        <ul>
+          <li><a href="privacidade.html">Política de privacidade</a></li>
+          <li class="breve">Termos de uso<em>em breve</em></li>
+          <li><a href="excluir-conta.html">Apagar minha conta</a></li>
+        </ul>
+      </div>
+      <div class="col">
+        <span>Fale com a gente</span>
+        <span class="email">superlista.adm@gmail.com</span>
+      </div>
+    </footer>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var parado = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Desenhos de QR só de enfeite, sempre iguais: não levam a lugar nenhum.
+  document.querySelectorAll('svg[data-qr]').forEach(function (qr) {
+    var n = 25, semente = Number(qr.getAttribute('data-qr')), partes = [];
+    function sorteio() { semente = (semente * 9301 + 49297) % 233280; return semente / 233280; }
+    function noOlho(x, y) { return (x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9); }
+    function olho(x, y) {
+      partes.push('<rect x="' + x + '" y="' + y + '" width="7" height="7"/>');
+      partes.push('<rect x="' + (x + 1) + '" y="' + (y + 1) + '" width="5" height="5" fill="#f6f3ea"/>');
+      partes.push('<rect x="' + (x + 2) + '" y="' + (y + 2) + '" width="3" height="3"/>');
+    }
+    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
+      if (!noOlho(x, y) && sorteio() > 0.52) partes.push('<rect x="' + x + '" y="' + y + '" width="1" height="1"/>');
+    }
+    olho(0, 0); olho(n - 7, 0); olho(0, n - 7);
+    qr.setAttribute('fill', '#26231e');
+    qr.innerHTML = partes.join('');
+  });
+
+  // Os pontinhos das lojas no mapa de "No mercado", sempre nos mesmos lugares.
+  document.querySelectorAll('[data-pontos]').forEach(function (caixa) {
+    var semente = 11, partes = [];
+    function sorteio() { semente = (semente * 9301 + 49297) % 233280; return semente / 233280; }
+    for (var i = 0; i < Number(caixa.getAttribute('data-pontos')); i++) {
+      var x = 3 + sorteio() * 93, y = 14 + sorteio() * 50, d = (sorteio() * 1.4).toFixed(2);
+      partes.push('<span style="left:' + x.toFixed(1) + '%;top:' + y.toFixed(1) + '%;--d:' + d + 's"></span>');
+    }
+    caixa.innerHTML = partes.join('');
+  });
+
+  // O celular do começo: cada item sai de uma linha do cupom numa etiqueta, voa até o mesmo
+  // item da lista e é marcado quando ela chega. O que a Ana pega também chega como aviso.
+  var faltando = Array.prototype.slice.call(document.querySelectorAll('.app-item[data-item]'));
+  var cena = document.querySelector('.cena'), corpo = document.querySelector('.app-corpo');
+  var voa = document.getElementById('voa'), voaTexto = document.getElementById('voa-texto');
+  var original = faltando.map(function (el) { return el.querySelector('small').textContent; });
+  var faltam = document.getElementById('faltam'), pegos = document.getElementById('pegos'), barra = document.getElementById('barra');
+  var aviso = document.getElementById('aviso'), avisoTexto = document.getElementById('aviso-texto');
+  var total = 8, jaPegos = 3, passo = 0;
+
+  function contar() {
+    faltam.textContent = String(total - jaPegos);
+    pegos.textContent = jaPegos + ' de ' + total + ' pegos';
+    barra.style.width = (jaPegos / total * 100) + '%';
+  }
+  function pegar(el) {
+    var quem = el.getAttribute('data-quem');
+    el.classList.add('pego', 'agora');
+    el.querySelector('use').setAttribute('href', '#i-pego');
+    el.querySelector('small').textContent = 'pego por ' + quem + ' · R$ ' + el.getAttribute('data-etiqueta').split(' · ')[1];
+    setTimeout(function () { el.classList.remove('agora'); }, 900);
+    jaPegos++; contar();
+    if (quem === 'Ana') {
+      avisoTexto.textContent = 'Ana pegou ' + el.querySelector('b').textContent;
+      aviso.classList.add('on');
+      setTimeout(function () { aviso.classList.remove('on'); }, 1600);
+    }
+  }
+  function recomecar() {
+    faltando.forEach(function (el, i) {
+      el.classList.remove('pego', 'agora');
+      el.querySelector('use').setAttribute('href', '#i-circulo');
+      el.querySelector('small').textContent = original[i];
+    });
+    jaPegos = 3; passo = 0; contar();
+    corpo.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function caixa(el) {
+    var r = el.getBoundingClientRect(), c = cena.getBoundingClientRect();
+    return { x: r.left - c.left, y: r.top - c.top, w: r.width, h: r.height };
+  }
+  function voar(el) {
+    var linha = document.querySelector('.papel .lin[data-item="' + el.getAttribute('data-item') + '"]');
+    corpo.scrollTo({ top: Math.max(0, el.offsetTop - corpo.offsetTop - 70), behavior: 'smooth' });
+    setTimeout(function () {
+      voaTexto.textContent = el.getAttribute('data-etiqueta');
+      linha.classList.add('saindo');
+      var de = caixa(linha), para = caixa(el), h = voa.offsetHeight;
+      var x0 = de.x + 6, y0 = de.y + de.h / 2 - h / 2;
+      var x1 = para.x + 34, y1 = para.y + para.h / 2 - h / 2;
+      // em linha reta: nasce na linha do cupom e vai direto ao item da lista
+      voa.animate([
+        { transform: 'translate(' + x0 + 'px,' + y0 + 'px) scale(0.6)', opacity: 0, easing: 'ease-out' },
+        { transform: 'translate(' + x0 + 'px,' + y0 + 'px) scale(1)', opacity: 1, offset: 0.12, easing: 'cubic-bezier(0.45, 0, 0.25, 1)' },
+        { transform: 'translate(' + x1 + 'px,' + y1 + 'px) scale(1)', opacity: 1, offset: 0.82 },
+        { transform: 'translate(' + x1 + 'px,' + y1 + 'px) scale(0.5)', opacity: 0 }
+      ], { duration: 1600, fill: 'forwards' });
+      setTimeout(function () { linha.classList.remove('saindo'); }, 900);
+      setTimeout(function () { pegar(el); }, 1320);
+    }, 450);
+  }
+  function tique() {
+    if (passo < faltando.length) { voar(faltando[passo]); passo++; setTimeout(tique, 2900); }
+    else { setTimeout(function () { recomecar(); setTimeout(tique, 1600); }, 2600); }
+  }
+  if (!parado && voa.animate) setTimeout(tique, 1600);
+
+  // Os cartões do "E mais" acendem onde o mouse está.
+  document.querySelectorAll('.mais article').forEach(function (el) {
+    el.addEventListener('pointermove', function (e) {
+      var r = el.getBoundingClientRect();
+      el.style.setProperty('--x', (e.clientX - r.left) + 'px');
+      el.style.setProperty('--y', (e.clientY - r.top) + 'px');
+    });
+  });
+
+  // Quando a comparação e o R$ 0 aparecem na tela, eles se animam uma vez.
+  // Antes disso já estão no valor final: nada fica escondido esperando.
+  function real(v) { return 'R$ ' + v.toFixed(2).replace('.', ','); }
+  function contarValores(caixa) {
+    caixa.querySelectorAll('[data-valor]').forEach(function (el) {
+      var fim = Number(el.getAttribute('data-valor')), inicio = performance.now(), dur = 1100;
+      function quadro(t) {
+        var p = Math.min(1, (t - inicio) / dur), suave = 1 - Math.pow(1 - p, 3);
+        el.textContent = real(fim * (0.6 + 0.4 * suave));
+        if (p < 1) requestAnimationFrame(quadro); else el.textContent = real(fim);
+      }
+      requestAnimationFrame(quadro);
+    });
+  }
+  if (!parado && 'IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('visto');
+        contarValores(e.target);
+        obs.unobserve(e.target);
+      });
+    }, { threshold: 0.45 });
+    document.querySelectorAll('[data-observar]').forEach(function (el) { obs.observe(el); });
+  }
+})();
+</script>
+
+</html>
